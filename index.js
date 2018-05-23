@@ -18,10 +18,10 @@ if (!fs.existsSync(npmignoreDir)) {
   process.exit(0);
 }
 
-const moduleList = fs.readdirSync(npmignoreDir);
+const moduleIgnoreList = fs.readdirSync(npmignoreDir);
 const removeList = [];
 
-moduleList.forEach(module => {
+moduleIgnoreList.forEach(module => {
   const moduleDir = path.join(moduleRootDir, module).replace(/[\\\/]+/g, '/');
   if (!fs.existsSync(moduleDir)) {
     return;
@@ -41,6 +41,39 @@ moduleList.forEach(module => {
     }
   });
 
+});
+
+const moduleList = fs.readdirSync(moduleRootDir).filter(item => {
+  return item !== '.bin';
+});
+
+moduleList.forEach(module => {
+  module = path.join(moduleRootDir, module);
+
+  const index = path.join(module, 'index.js');
+  const package = path.join(module, 'package.json');
+
+  if (fs.existsSync(package)) {
+    const version = require(package).version;
+    const main = require(package).main;
+    const _resolved = require(package)._resolved;
+    const dependencies = require(package).dependencies;
+    const devDependencies = require(package).devDependencies;
+    const packageJson = {version,main,_resolved,dependencies,devDependencies};
+    fs.writeFileSync(package, JSON.stringify(packageJson));
+  }
+
+  const ignore = path.join(module, '.npmignore');
+  if (fs.existsSync(ignore)) {
+    removeList.push(ignore);
+  }
+
+  const list = fs.readdirSync(module);
+  for (let item of list) {
+    if (item.toLowerCase() === 'readme.md' || item.toLowerCase() === 'readme') {
+      removeList.push(path.join(module, item));
+    }
+  }
 });
 
 console.log(`Removing ${removeList.length} items...`);
