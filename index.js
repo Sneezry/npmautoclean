@@ -99,7 +99,6 @@ const defaultIgnoreList = [
   'example/',
   'examples/',
   'coverage/',
-  'node_modules/',
   '.nyc_output/',
   '.circleci/',
   '.github/',
@@ -209,9 +208,7 @@ moduleList.forEach(module => {
 
   module = path.join(moduleRootDir, module);
 
-  const index = path.join(module, 'index.js');
   const package = path.join(module, 'package.json');
-
   if (fs.existsSync(package)) {
     const version = require(package).version;
     const main = require(package).main;
